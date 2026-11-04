@@ -10,15 +10,5 @@ updates:
       - "dependencies"
       - "github-actions"
 
-  # npm 依赖（当项目引入 package.json 后生效）
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-      - "javascript"
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
+  # NOTE: 当项目引入 package.json 后，再启用 npm 生态的依赖更新检查。
+  # 当前站点为零依赖静态页面（Three.js 内置于 vendor/），配置 npm 会导致检查失败。
