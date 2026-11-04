@@ -1,0 +1,33 @@
+# 依赖目录
+node_modules/
+
+# 构建产物
+dist/
+build/
+*.min.js
+*.min.css
+
+# 图片和字体
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.ico
+*.woff
+*.woff2
+*.ttf
+*.eot
+
+# 3D 模型与资源
+*.glb
+*.gltf
+*.obj
+*.fbx
+*.hdr
+*.exr
+
+# 其他
+*.md
+LICENSE
+.nojekyll
