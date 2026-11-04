@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Interactive 3D Gallery · 交互式 3D 虚拟画廊</title>
+<style>
+:root{
+  --cy:#3ee6ff; --cy-dim:rgba(62,230,255,.35); --cy-faint:rgba(62,230,255,.08);
+  --purple:#b98cff;
+  --bg:#041016; --panel:rgba(8,24,31,.72); --line:rgba(92,224,255,.22);
+  --txt:#d8f6ff; --mut:#7fb6c4; --mut2:#5d8b99;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100%;background:var(--bg);color:var(--txt);
+  font-family:"Noto Sans SC","Rajdhani",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{
+  background:
+   radial-gradient(1200px 800px at 62% 38%, rgba(34,120,140,.28), transparent 62%),
+   radial-gradient(900px 700px at 18% 92%, rgba(20,80,100,.20), transparent 60%),
+   linear-gradient(180deg,#05141c 0%,#030b10 55%,#02080c 100%);
+  background-attachment:fixed;min-height:100vh;display:flex;flex-direction:column}
+.scan{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.05;
+  background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(120,230,255,.5) 2px 3px)}
+.mono{font-family:"Rajdhani","Orbitron",monospace;letter-spacing:.08em}
+
+/* ---------- header ---------- */
+header{position:relative;z-index:2;text-align:center;padding:72px 24px 28px}
+.logo{width:64px;height:64px;margin:0 auto 22px;clip-path:polygon(18% 0,100% 0,100% 82%,82% 100%,0 100%,0 18%);
+  background:linear-gradient(135deg,rgba(62,230,255,.25),rgba(62,230,255,.04));border:1px solid var(--cy);
+  display:grid;place-items:center;font-family:"Orbitron";font-weight:900;font-size:24px;color:var(--cy);
+  box-shadow:0 0 22px rgba(62,230,255,.28),inset 0 0 16px rgba(62,230,255,.15)}
+h1{font-family:"Orbitron";font-weight:900;font-size:clamp(26px,5vw,42px);letter-spacing:.14em;line-height:1.15;
+  color:#eafcff;text-shadow:0 0 18px rgba(62,230,255,.45)}
+.subtitle{margin-top:14px;font-size:15px;letter-spacing:.22em;color:var(--mut)}
+.status{display:inline-flex;align-items:center;gap:8px;margin-top:20px;padding:7px 16px;
+  border:1px solid rgba(70,230,168,.4);border-radius:3px;background:rgba(70,230,168,.07);
+  font-family:"Orbitron";font-size:11px;letter-spacing:.22em;color:#5ff0bb}
+.status .dot{width:8px;height:8px;border-radius:50%;background:#46e6a8;box-shadow:0 0 10px #46e6a8;animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ---------- gallery grid ---------- */
+main{position:relative;z-index:2;flex:1;width:100%;max-width:1080px;margin:0 auto;padding:36px 24px 80px}
+.section-label{display:flex;align-items:center;gap:14px;margin-bottom:26px;color:var(--mut2);
+  font-family:"Rajdhani";font-weight:600;font-size:13px;letter-spacing:.34em}
+.section-label::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px}
+
+.card{position:relative;display:block;text-decoration:none;color:inherit;border-radius:8px;overflow:hidden;
+  background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(12px);
+  box-shadow:0 12px 44px rgba(0,0,0,.5),inset 0 0 30px rgba(62,230,255,.04);
+  transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease}
+.card:hover{transform:translateY(-5px);border-color:var(--cy-dim);
+  box-shadow:0 20px 56px rgba(0,0,0,.6),0 0 28px rgba(62,230,255,.18)}
+.card-thumb{position:relative;aspect-ratio:16/9;overflow:hidden;
+  background:
+   radial-gradient(420px 240px at 64% 40%,rgba(62,230,255,.22),transparent 65%),
+   linear-gradient(135deg,#0a2029 0%,#06131a 55%,#041016 100%)}
+.card-thumb svg{position:absolute;inset:0;width:100%;height:100%;opacity:.9}
+.card-thumb .tag{position:absolute;top:12px;left:12px;padding:4px 10px;border:1px solid var(--cy-dim);
+  border-radius:3px;background:rgba(4,16,22,.7);font-family:"Orbitron";font-size:10px;
+  letter-spacing:.18em;color:var(--cy)}
+.card-body{padding:20px 22px 22px}
+.card-body h2{font-family:"Orbitron";font-weight:700;font-size:18px;letter-spacing:.06em;color:#eafcff}
+.card-body p{margin-top:10px;font-size:13.5px;line-height:1.75;color:var(--mut)}
+.card-meta{display:flex;align-items:center;gap:8px;margin-top:16px;padding-top:14px;
+  border-top:1px solid rgba(92,224,255,.12);font-family:"Rajdhani";font-weight:600;
+  font-size:12.5px;letter-spacing:.2em;color:var(--cy)}
+.card-meta .arrow{margin-left:auto;transition:transform .25s ease}
+.card:hover .arrow{transform:translateX(5px)}
+.badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.badges span{padding:3px 9px;border:1px solid rgba(92,224,255,.2);border-radius:3px;
+  font-family:"Rajdhani";font-size:11px;letter-spacing:.1em;color:var(--mut2)}
+
+/* ---------- footer ---------- */
+footer{position:relative;z-index:2;text-align:center;padding:26px 24px 34px;
+  border-top:1px solid rgba(92,224,255,.1);color:var(--mut2);
+  font-family:"Rajdhani";font-size:12.5px;letter-spacing:.18em}
+footer a{color:var(--cy);text-decoration:none}
+footer a:hover{text-shadow:0 0 10px rgba(62,230,255,.6)}
+</style>
+</head>
+<body>
+<div class="scan" aria-hidden="true"></div>
+
+<header>
+  <div class="logo">3D</div>
+  <h1>INTERACTIVE 3D GALLERY</h1>
+  <div class="subtitle">交 互 式 3D 虚 拟 画 廊 · EXHIBITION HALL</div>
+  <div class="status"><span class="dot"></span>HALL 01 · NOW OPEN</div>
+</header>
+
+<main>
+  <div class="section-label mono">CURRENT EXHIBITS / 当前展品</div>
+  <div class="grid">
+
+    <a class="card" href="./projects/action4-3d-teardown/index.html">
+      <div class="card-thumb">
+        <span class="tag">EXHIBIT 01</span>
+        <svg viewBox="0 0 320 180" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#3ee6ff" stop-opacity=".9"/>
+              <stop offset="1" stop-color="#b98cff" stop-opacity=".7"/>
+            </linearGradient>
+          </defs>
+          <g stroke="url(#g1)" stroke-width="1.2">
+            <rect x="118" y="42" width="84" height="96" rx="10"/>
+            <rect x="134" y="58" width="52" height="64" rx="8" stroke-dasharray="4 4"/>
+            <circle cx="160" cy="90" r="20"/>
+            <circle cx="160" cy="90" r="10" stroke-dasharray="3 3"/>
+            <line x1="40" y1="90" x2="118" y2="90" stroke-dasharray="5 5"/>
+            <line x1="202" y1="90" x2="280" y2="90" stroke-dasharray="5 5"/>
+            <line x1="160" y1="42" x2="160" y2="16"/>
+            <line x1="160" y1="138" x2="160" y2="164"/>
+          </g>
+          <g fill="#3ee6ff">
+            <circle cx="40" cy="90" r="3"/><circle cx="280" cy="90" r="3"/>
+            <circle cx="160" cy="16" r="3"/><circle cx="160" cy="164" r="3"/>
+          </g>
+        </svg>
+      </div>
+      <div class="card-body">
+        <h2>OSMO ACTION 4 · 3D 结构拆解</h2>
+        <p>纯 Three.js 构建的运动相机交互式爆炸图：16 个程序化建模组件、智能点选聚焦与赛博朋克 HUD 工程参数面板。</p>
+        <div class="badges">
+          <span>Three.js</span><span>WebGL</span><span>Exploded View</span><span>Zero CDN</span>
+        </div>
+        <div class="card-meta mono">ENTER EXHIBIT<span class="arrow">→</span></div>
+      </div>
+    </a>
+
+  </div>
+</main>
+
+<footer>
+  © 2026 <a href="https://github.com/lccuhk" target="_blank" rel="noopener">Denis LU (lccuhk)</a> ·
+  <a href="https://github.com/lccuhk/interactive-3d-gallery" target="_blank" rel="noopener">GitHub Repository</a>
+</footer>
+</body>
+</html>

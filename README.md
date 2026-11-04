@@ -10,9 +10,15 @@
 [![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat-square&logo=css3&logoColor=white)](https://developer.mozilla.org/zh-CN/docs/Web/CSS)
 [![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript)
 
-一个基于 WebGL 的交互式 3D 虚拟画廊，可以在浏览器中自由漫游、浏览和欣赏艺术作品。
+一个基于 WebGL 的交互式 3D 虚拟画廊，可以在浏览器中自由漫游、浏览和欣赏交互式 3D 作品。
 
-> 🚧 项目正在初始化中，代码即将上线。
+## 🖼️ 当前展品
+
+| # | 展品 | 技术 | 在线体验 |
+|---|------|------|----------|
+| 01 | **OSMO ACTION 4 · 3D 结构拆解** — 运动相机交互式爆炸图，16 个程序化建模组件、点选聚焦与赛博 HUD 参数面板 | Three.js / WebGL | [进入展厅](https://lccuhk.github.io/interactive-3d-gallery/projects/action4-3d-teardown/) |
+
+> 展品源码位于 [`projects/action4-3d-teardown/`](projects/action4-3d-teardown/)，为零外链的自包含静态站点。
 
 ## ✨ 功能特性（规划中）
 
@@ -39,12 +45,15 @@
 
 ```
 interactive-3d-gallery/
-├── index.html          # 入口页面
-├── assets/             # 静态资源
+├── index.html          # 画廊入口（展品目录大厅）
+├── projects/           # 各个独立 3D 展品
+│   └── action4-3d-teardown/   # 展品 01：OSMO ACTION 4 结构拆解
+│       ├── index.html
+│       ├── app.js
+│       └── vendor/            # 内置 Three.js，零外链 CDN
+├── assets/             # 画廊公共静态资源（规划中）
 │   ├── images/         # 展品图片
 │   └── models/         # 3D 模型
-├── css/                # 样式文件
-├── js/                 # 脚本文件
 └── README.md
 ```
 
@@ -65,6 +74,8 @@ python3 -m http.server 8000
 
 ### 短期（2026 Q4）
 - [x] 创建项目仓库与基础配置
+- [x] 展品 01：OSMO ACTION 4 · 3D 结构拆解（子页面形式入驻）
+- [x] 画廊入口页与展品目录卡片
 - [ ] 搭建 3D 场景基础框架
 - [ ] 实现展厅房间与灯光
 

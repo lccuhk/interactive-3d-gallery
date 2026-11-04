@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>OSMO ACTION 4 · 3D 结构拆解 / STRUCTURE EXPLORER</title>
+<style>
+:root{
+  --cy:#3ee6ff; --cy-dim:rgba(62,230,255,.35); --cy-faint:rgba(62,230,255,.12);
+  --purple:#b98cff; --green:#46e6a8; --orange:#ffb24d; --red:#ff5d6c;
+  --bg:#041016; --panel:rgba(8,24,31,.72); --panel-solid:#0a1d25; --line:rgba(92,224,255,.22);
+  --txt:#d8f6ff; --mut:#7fb6c4; --mut2:#5d8b99;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--txt);
+  font-family:"Noto Sans SC","Rajdhani",system-ui,sans-serif;-webkit-font-smoothing:antialiased;user-select:none}
+.mono{font-family:"Rajdhani","Orbitron",monospace;letter-spacing:.08em}
+#scene{position:fixed;inset:0;z-index:0}
+#scene canvas{display:block}
+/* ambient background */
+#bgfx{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+   radial-gradient(1200px 800px at 62% 42%, rgba(34,120,140,.28), transparent 62%),
+   radial-gradient(900px 700px at 20% 90%, rgba(20,80,100,.20), transparent 60%),
+   linear-gradient(180deg,#05141c 0%,#030b10 55%,#02080c 100%)}
+#vignette{position:fixed;inset:0;z-index:3;pointer-events:none;
+  box-shadow:inset 0 0 240px 60px rgba(0,0,0,.72)}
+#scan{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.06;
+  background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(120,230,255,.5) 2px 3px)}
+
+/* corner brackets */
+.bracket{position:fixed;z-index:20;width:26px;height:26px;pointer-events:none;color:var(--cy);opacity:.7}
+.bracket svg{width:100%;height:100%}
+.bracket.tl{top:12px;left:12px}.bracket.tr{top:12px;right:12px;transform:scaleX(-1)}
+.bracket.bl{bottom:12px;left:12px;transform:scaleY(-1)}.bracket.br{bottom:12px;right:12px;transform:scale(-1)}
+
+/* ---------- top bar ---------- */
+.topbar{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:15;display:flex;align-items:center;gap:16px;pointer-events:none}
+.brand{display:flex;align-items:center;gap:14px}
+.logo{width:52px;height:52px;clip-path:polygon(18% 0,100% 0,100% 82%,82% 100%,0 100%,0 18%);
+  background:linear-gradient(135deg,rgba(62,230,255,.25),rgba(62,230,255,.04));border:1px solid var(--cy);
+  display:grid;place-items:center;font-family:"Orbitron";font-weight:900;font-size:20px;color:var(--cy);
+  box-shadow:0 0 18px rgba(62,230,255,.25),inset 0 0 14px rgba(62,230,255,.15)}
+.brand h1{font-family:"Orbitron";font-weight:900;font-size:25px;letter-spacing:.16em;line-height:1;
+  color:#eafcff;text-shadow:0 0 16px rgba(62,230,255,.55)}
+.brand .sub{font-family:"Rajdhani";font-weight:600;font-size:12.5px;letter-spacing:.42em;color:var(--mut);margin-top:5px}
+.live{display:flex;align-items:center;gap:8px;margin-left:10px;padding:7px 14px;border:1px solid rgba(255,93,108,.45);
+  border-radius:3px;background:rgba(255,93,108,.08);font-family:"Orbitron";font-size:11px;letter-spacing:.22em;color:#ff8b96}
+.live .dot{width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 10px var(--red);animation:pulse 1.3s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+.stats{position:fixed;top:20px;right:46px;z-index:15;display:flex;gap:8px}
+.chip{padding:8px 13px;border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(8px);
+  border-radius:3px;font-family:"Rajdhani";font-weight:600;font-size:12px;letter-spacing:.14em;color:var(--mut)}
+.chip b{color:var(--cy);font-family:"Orbitron";font-size:14px;margin-left:6px;text-shadow:0 0 10px rgba(62,230,255,.6)}
+.chip .q{color:var(--mut2);margin-right:7px;font-size:10px}
+
+/* ---------- generic panel ---------- */
+.panel{position:fixed;z-index:14;background:var(--panel);backdrop-filter:blur(12px);
+  border:1px solid var(--line);border-radius:6px;box-shadow:0 10px 40px rgba(0,0,0,.5),inset 0 0 30px rgba(62,230,255,.04)}
+.panel::before{content:"";position:absolute;inset:0;border-radius:6px;pointer-events:none;
+  background:linear-gradient(120deg,rgba(62,230,255,.10),transparent 30%)}
+.phead{display:flex;align-items:baseline;gap:9px;padding:13px 15px 11px;border-bottom:1px solid var(--line)}
+.phead .zh{font-weight:700;font-size:14px;letter-spacing:.12em;color:#eafcff}
+.phead .en{font-family:"Rajdhani";font-weight:700;font-size:12px;letter-spacing:.26em;color:var(--cy)}
+.phead .cnt{margin-left:auto;font-family:"Rajdhani";font-weight:600;font-size:11px;letter-spacing:.18em;color:var(--mut2)}
+
+/* left */
+.panel-left{left:26px;top:96px;width:268px;bottom:96px;display:flex;flex-direction:column}
+.tabs{display:flex;gap:6px;padding:11px 13px}
+.tab{flex:1;padding:6px 0;text-align:center;font-size:12px;letter-spacing:.1em;color:var(--mut);cursor:pointer;
+  border:1px solid var(--line);border-radius:3px;background:rgba(62,230,255,.03);transition:.18s}
+.tab:hover{color:var(--txt);border-color:var(--cy-dim)}
+.tab.on{color:#03131a;background:var(--cy);border-color:var(--cy);font-weight:700;box-shadow:0 0 14px rgba(62,230,255,.45)}
+#partsList{flex:1;overflow-y:auto;padding:2px 9px 12px;scrollbar-width:thin;scrollbar-color:var(--cy-dim) transparent}
+#partsList::-webkit-scrollbar{width:5px}#partsList::-webkit-scrollbar-thumb{background:var(--cy-dim);border-radius:3px}
+.pitem{display:flex;align-items:center;gap:10px;padding:9px 9px;margin:3px 0;border:1px solid transparent;border-radius:4px;cursor:pointer;transition:.15s;position:relative}
+.pitem:hover{background:rgba(62,230,255,.07);border-color:var(--cy-faint)}
+.pitem.sel{background:linear-gradient(90deg,rgba(62,230,255,.20),rgba(62,230,255,.03));border-color:var(--cy-dim);box-shadow:inset 2px 0 0 var(--cy)}
+.pitem .idx{font-family:"Orbitron";font-size:11px;color:var(--mut2);width:19px}
+.pitem.sel .idx{color:var(--cy)}
+.pitem .nm{font-size:13px;font-weight:500;color:var(--txt);line-height:1.2}
+.pitem .en{font-family:"Rajdhani";font-size:10px;letter-spacing:.14em;color:var(--mut2);margin-top:2px;text-transform:uppercase}
+.pitem .led{margin-left:auto;width:7px;height:7px;border-radius:50%;flex:none}
+.pitem.dim{opacity:.3}
+.led.c-structure{background:var(--cy);box-shadow:0 0 7px var(--cy)}
+.led.c-optics{background:var(--purple);box-shadow:0 0 7px var(--purple)}
+.led.c-circuit{background:var(--green);box-shadow:0 0 7px var(--green)}
+.led.c-power{background:var(--orange);box-shadow:0 0 7px var(--orange)}
+
+/* right specs */
+.panel-right{right:26px;top:96px;width:318px;max-height:calc(100vh - 192px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--cy-dim) transparent}
+.panel-right::-webkit-scrollbar{width:5px}.panel-right::-webkit-scrollbar-thumb{background:var(--cy-dim)}
+.spec-body{padding:15px 16px 18px}
+.cat-chip{display:inline-flex;align-items:center;gap:7px;padding:4px 11px;border:1px solid var(--cy-dim);border-radius:3px;
+  font-size:11px;letter-spacing:.18em;color:var(--cy);background:rgba(62,230,255,.07)}
+.cat-chip .d{width:6px;height:6px;border-radius:50%;background:var(--cy)}
+.part-no{float:right;font-family:"Orbitron";font-size:12px;color:var(--mut2);margin-top:5px}
+.spec-title{margin:14px 0 2px;font-size:24px;font-weight:900;letter-spacing:.04em;color:#f1fdff;text-shadow:0 0 18px rgba(62,230,255,.35)}
+.spec-en{font-family:"Rajdhani";font-weight:700;font-size:13px;letter-spacing:.24em;color:var(--mut);text-transform:uppercase;margin-bottom:12px}
+.spec-desc{font-size:12.5px;line-height:1.75;color:#bfe4ee;border:1px solid var(--cy-faint);border-left:2px solid var(--cy);
+  padding:9px 11px;background:rgba(62,230,255,.04);border-radius:0 4px 4px 0}
+.spec-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.spec-cell{border:1px solid var(--line);border-radius:4px;padding:8px 10px;background:rgba(6,20,27,.5)}
+.spec-cell .k{font-size:10.5px;color:var(--mut2);letter-spacing:.08em}
+.spec-cell .v{font-family:"Rajdhani";font-weight:700;font-size:15px;color:var(--cy);margin-top:3px;letter-spacing:.04em}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:13px}
+.tag{font-size:11px;padding:4px 10px;border:1px solid var(--cy-dim);border-radius:20px;color:#bfeefb;background:rgba(62,230,255,.06)}
+.spec-status{margin-top:13px;font-family:"Rajdhani";font-size:12px;letter-spacing:.12em;color:var(--mut);display:flex;justify-content:space-between}
+.spec-status b{color:var(--green);font-weight:700}
+.sbtn{width:100%;margin-top:9px;padding:11px;border-radius:4px;cursor:pointer;font-size:13px;letter-spacing:.14em;transition:.18s;font-family:inherit}
+.sbtn.ghost{background:transparent;border:1px solid var(--line);color:var(--mut)}
+.sbtn.ghost:hover{border-color:var(--cy-dim);color:var(--txt)}
+.sbtn.primary{background:linear-gradient(90deg,rgba(62,230,255,.9),rgba(45,180,210,.9));border:1px solid var(--cy);color:#03131a;font-weight:700;box-shadow:0 0 18px rgba(62,230,255,.35)}
+.sbtn.primary:hover{filter:brightness(1.1)}
+
+/* dock */
+.dock{position:fixed;z-index:15;bottom:26px;left:50%;transform:translateX(-50%);display:flex;gap:6px;padding:7px;
+  background:var(--panel);backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:8px;box-shadow:0 12px 40px rgba(0,0,0,.55)}
+.dbtn{display:flex;align-items:center;gap:8px;padding:10px 17px;border-radius:5px;cursor:pointer;font-size:13.5px;letter-spacing:.1em;
+  color:var(--mut);border:1px solid transparent;background:transparent;transition:.16s;font-family:inherit;white-space:nowrap}
+.dbtn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7}
+.dbtn:hover{color:var(--txt);background:rgba(62,230,255,.08)}
+.dbtn.on{color:#03131a;background:var(--cy);font-weight:700;box-shadow:0 0 16px rgba(62,230,255,.5)}
+.dbtn.on:hover{color:#03131a}
+.dsep{width:1px;background:var(--line);margin:4px 3px}
+.zoomwrap{display:flex;align-items:center;gap:8px;padding:0 12px;color:var(--mut2)}
+.zoomwrap input{width:96px;accent-color:var(--cy);cursor:pointer}
+
+/* legend */
+.legend{position:fixed;left:30px;bottom:26px;z-index:13;display:flex;gap:14px;align-items:center;flex-wrap:wrap;max-width:240px}
+.lg{display:flex;align-items:center;gap:6px;font-family:"Rajdhani";font-size:11px;letter-spacing:.08em;color:var(--mut2)}
+.lg i{width:20px;height:0;border-top:2px solid var(--cy-dim)}
+.lg .dash{border-top:2px dashed var(--cy)}
+.lg .pt{width:7px;height:7px;border-radius:50%;background:var(--cy);border:0;box-shadow:0 0 6px var(--cy)}
+
+/* floating labels + leaders */
+#labels{position:fixed;inset:0;z-index:10;pointer-events:none}
+#leaders{position:fixed;inset:0;z-index:9;pointer-events:none;overflow:visible}
+.flab{position:absolute;transform:translate(-50%,-100%);padding:6px 9px 6px 8px;background:rgba(6,22,29,.86);
+  border:1px solid var(--cy);border-radius:4px;backdrop-filter:blur(4px);box-shadow:0 0 14px rgba(62,230,255,.25);
+  white-space:nowrap;opacity:0;transition:opacity .25s}
+.flab.on{opacity:1}
+.flab .lno{display:inline-grid;place-items:center;min-width:21px;height:15px;padding:0 3px;margin-right:7px;border-radius:2px;
+  background:var(--cy);color:#03131a;font-family:"Orbitron";font-size:9.5px;font-weight:700;vertical-align:1px}
+.flab .lzh{font-size:12px;font-weight:700;color:#eafcff}
+.flab .lsub{display:block;font-family:"Rajdhani";font-size:10px;letter-spacing:.06em;color:var(--mut);margin-top:1px}
+.flab.hot{border-color:#fff;box-shadow:0 0 20px rgba(120,240,255,.7)}
+.flab.hot .lno{background:#fff}
+
+/* guide */
+#guide{position:fixed;inset:0;z-index:40;display:none;align-items:flex-end;justify-content:center;padding-bottom:96px;
+  background:rgba(2,10,14,.35);backdrop-filter:blur(2px)}
+#guide.on{display:flex}
+.gcard{width:440px;background:var(--panel-solid);border:1px solid var(--cy-dim);border-radius:8px;padding:18px 20px;
+  box-shadow:0 0 40px rgba(62,230,255,.25)}
+.gstep{font-family:"Orbitron";font-size:11px;letter-spacing:.2em;color:var(--cy)}
+.gtitle{font-size:18px;font-weight:800;margin:7px 0 4px}
+.gdesc{font-size:12.5px;color:var(--mut);line-height:1.6;min-height:38px}
+.gprog{height:3px;background:rgba(62,230,255,.15);border-radius:2px;margin:13px 0;overflow:hidden}
+.gprog i{display:block;height:100%;background:var(--cy);box-shadow:0 0 10px var(--cy);transition:width .4s}
+.gbtns{display:flex;gap:8px;justify-content:flex-end}
+.gbtns button{padding:8px 18px;border-radius:4px;cursor:pointer;font-size:12.5px;font-family:inherit}
+.gskip{background:transparent;border:1px solid var(--line);color:var(--mut)}
+.gnext{background:var(--cy);border:1px solid var(--cy);color:#03131a;font-weight:700}
+
+/* loader + hint */
+#loader{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:#041016;transition:opacity .6s}
+#loader.off{opacity:0;pointer-events:none}
+.lbox{text-align:center}
+.lbox .spin{width:46px;height:46px;margin:0 auto 18px;border:2px solid rgba(62,230,255,.2);border-top-color:var(--cy);
+  border-radius:50%;animation:rot 1s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+.lbox .t{font-family:"Orbitron";letter-spacing:.3em;font-size:13px;color:var(--cy)}
+.lbox .s{font-size:11px;color:var(--mut2);margin-top:8px;letter-spacing:.1em}
+#dragHint{position:fixed;z-index:12;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;color:var(--mut);
+  font-size:12px;letter-spacing:.3em;pointer-events:none;opacity:0;transition:opacity .4s;text-shadow:0 0 12px #000}
+/* 无外链字体时的本地字体回退：数字/英文等宽，中文系统字体 */
+body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif}
+.logo,.brand h1,.live,.chip,.chip b,.mono,.phead .en,.pitem .idx,.pitem .en,.spec-en,.spec-cell .v,
+.part-no,.cat-chip,.spec-status,.gstep,.flab .lno,.tab,.dbtn{
+  font-family:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Rajdhani","PingFang SC","Microsoft YaHei",sans-serif;}
+</style>
+</head>
+<body>
+<div id="bgfx"></div>
+<div id="scene"></div>
+<svg id="leaders"></svg>
+<div id="labels"></div>
+<div id="scan"></div><div id="vignette"></div>
+<div class="bracket tl"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 26V2h24"/></svg></div>
+<div class="bracket tr"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 26V2h24"/></svg></div>
+<div class="bracket bl"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 26V2h24"/></svg></div>
+<div class="bracket br"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 26V2h24"/></svg></div>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="logo">A4</div>
+    <div>
+      <h1>OSMO ACTION 4</h1>
+      <div class="sub">3D TEARDOWN&nbsp;/&nbsp;STRUCTURE EXPLORER</div>
+    </div>
+    <div class="live"><span class="dot"></span>LIVE MODEL</div>
+  </div>
+</div>
+<div class="stats">
+  <div class="chip"><span class="q">PARTS</span><b id="stParts">16</b></div>
+  <div class="chip"><span class="q">EXPLODED</span><b id="stExplode">0%</b></div>
+  <div class="chip"><span class="q">FPS</span><b id="stFps">60</b></div>
+  <div class="chip"><span class="q">MODE</span><b id="stMode">装配</b></div>
+</div>
+
+<div class="panel panel-left">
+  <div class="phead"><span class="zh">部件清单</span><span class="en">/ PARTS</span><span class="cnt">16 COMPONENTS</span></div>
+  <div class="tabs" id="tabs">
+    <div class="tab on" data-cat="all">全部</div>
+    <div class="tab" data-cat="structure">结构</div>
+    <div class="tab" data-cat="optics">光学</div>
+    <div class="tab" data-cat="circuit">电路</div>
+    <div class="tab" data-cat="power">能源</div>
+  </div>
+  <div id="partsList"></div>
+</div>
+
+<div class="panel panel-right" id="specPanel"></div>
+
+<div class="dock">
+  <button class="dbtn" id="btnExplode">
+    <svg viewBox="0 0 24 24"><path d="M12 3v6m0 0L9 6m3 3 3-3M12 21v-6m0 0-3 3m3-3 3 3M3 12h6m0 0L6 9m3 3-3 3m12-3h-6m0 0 3-3m-3 3 3 3"/></svg>全部拆解</button>
+  <button class="dbtn" id="btnReset">
+    <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg>复位</button>
+  <button class="dbtn" id="btnRotate">
+    <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v5h-5"/></svg>自动旋转</button>
+  <div class="dsep"></div>
+  <button class="dbtn" id="btnView">
+    <svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>视角</button>
+  <button class="dbtn" id="btnGuide">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4m0-4h.01"/></svg>引导</button>
+  <div class="dsep"></div>
+  <div class="zoomwrap"><span class="mono" style="font-size:11px">拆解度</span><input id="explodeRange" type="range" min="0" max="100" value="0"/></div>
+</div>
+
+<div class="legend">
+  <span class="lg"><i></i>旋转</span>
+  <span class="lg"><i class="dash"></i>点击</span>
+  <span class="lg"><i class="pt"></i>拆解部件</span>
+  <span class="lg"><i style="border-top:2px solid rgba(62,230,255,.6)"></i>双层</span>
+</div>
+
+<div id="guide">
+  <div class="gcard">
+    <div class="gstep" id="gStep">STEP 01 / 16</div>
+    <div class="gtitle" id="gTitle"></div>
+    <div class="gdesc" id="gDesc"></div>
+    <div class="gprog"><i id="gProg"></i></div>
+    <div class="gbtns">
+      <button class="gskip" id="gSkip">退出引导</button>
+      <button class="gnext" id="gNext">下一步</button>
+    </div>
+  </div>
+</div>
+
+<div id="dragHint">拖 拽 旋 转 · 滚 轮 缩 放 · 点 击 部 件</div>
+<div id="loader"><div class="lbox"><div class="spin"></div><div class="t">INITIALIZING LIVE MODEL</div><div class="s">正在装载 16 个组件 / THREE.JS ENGINE</div></div></div>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>

@@ -8,6 +8,10 @@
 ## [Unreleased]
 
 ### 新增
+- 画廊入口页 `index.html`（赛博 HUD 风格展品目录大厅，响应式卡片布局）
+- 展品 01：OSMO ACTION 4 · 3D 结构拆解，入驻 `projects/action4-3d-teardown/`
+  - 纯 Three.js 交互式爆炸图，16 个程序化建模组件，零外链 CDN 依赖
+- README 增加「当前展品」板块并更新项目结构与路线图
 - 初始化项目仓库
 - 添加 README、MIT LICENSE、.gitignore
 - 添加 GitHub Pages 自动部署工作流
