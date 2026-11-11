@@ -326,6 +326,8 @@ function buildPart(p){
         const ball=new THREE.Mesh(new THREE.SphereGeometry(.07,12,12),MAT.spring); ball.position.set(Math.cos(a)*.42,Math.sin(a)*.42,0); add(ball);}
       const axle=part(zCyl(CY(.12,.12,.5,20)),MAT.blue,null); add(axle);
       rotor.position.set(PLATE_CENTER.x,PLATE_CENTER.y,0);
+      // 独立材质实例，便于整体切换 半透/实体/隐藏 而不影响其他部件
+      rotor.traverse(m=>{if(m.isMesh){m.material=m.material.clone();m.userData.rotorMat=true;}});
       break;}
   }
   outer.userData.partId=p.id;
@@ -346,9 +348,9 @@ renderer.toneMappingExposure=1.12;
 sceneEl.appendChild(renderer.domElement);
 
 const scene=new THREE.Scene();
-scene.fog=new THREE.FogExp2(0x041016,.015);
+scene.fog=new THREE.FogExp2(0x041016,.009);
 const camera=new THREE.PerspectiveCamera(42,W()/H(),.1,200);
-const HOME_CAM=new THREE.Vector3(10.5,7.8,16);
+const HOME_CAM=new THREE.Vector3(7.8,5.8,12);
 camera.position.copy(HOME_CAM);
 
 const controls=new OrbitControls(camera,renderer.domElement);
@@ -406,6 +408,25 @@ SPINNERS.push({rotor:POM.rotor.rotor,   mode:'spin',w:.35});
 SPINNERS.push({rotor:POM.pallet.rotor,  mode:'osc',A:.17,f:2.2,phase:0});
 SPINNERS.push({rotor:POM.balance.rotor, mode:'osc',A:1.15,f:2.2,phase:Math.PI/2});
 SPINNERS.push({rotor:POM.hairspring.rotor,mode:'osc',A:.5, f:2.2,phase:Math.PI/2});
+
+/* 自动陀显隐三态：半透（默认，不遮挡轮系）/ 实体 / 隐藏 */
+const ROTOR_LABEL={ghost:'自动陀：半透',solid:'自动陀：实体',hidden:'自动陀：隐藏'};
+let rotorMode='ghost';
+function applyRotorMode(mode){
+  rotorMode=mode;
+  POM.rotor.group.visible=mode!=='hidden';
+  POM.rotor.rotor.traverse(m=>{
+    if(m.isMesh&&m.userData.rotorMat){
+      const mt=m.material;
+      if(mode==='ghost'){mt.transparent=true;mt.opacity=.22;mt.depthWrite=false;}
+      else{mt.transparent=false;mt.opacity=1;mt.depthWrite=true;}
+      mt.needsUpdate=true;
+    }
+  });
+  const btn=document.getElementById('btnRotor');
+  if(btn)btn.lastChild.textContent=' '+ROTOR_LABEL[mode];
+}
+applyRotorMode('ghost');
 
 /* 悬浮标签 + 引线 */
 function sizeSvg(){svg.setAttribute('width',W());svg.setAttribute('height',H());svg.innerHTML='';
@@ -489,6 +510,7 @@ renderer.domElement.addEventListener('pointermove',e=>{
 
 /* 对外接口 */
 function selectById(id){selectedId=id;refreshHL();focusId(id);if(engine._cb)engine._cb(id);
+  if(id==='rotor'&&rotorMode==='hidden')applyRotorMode('solid');   // 选中被隐藏的自动陀时恢复显示
   document.getElementById('stMode').textContent='部件 '+(POM[id]?POM[id].part.no:'');}
 const engine={
   _cb:null,onSelect(cb){this._cb=cb;},
@@ -496,8 +518,10 @@ const engine={
   setExplode(v){targetExplode=v;document.getElementById('explodeRange').value=Math.round(v*100);},
   explodeAll(){targetExplode=targetExplode>.5?0:1;document.getElementById('explodeRange').value=Math.round(targetExplode*100);},
   reset(){targetExplode=0;collapsed.clear();document.getElementById('explodeRange').value=0;selectedId=null;hoverId=null;refreshHL();
+    applyRotorMode('ghost');
     tweenCam(HOME_CAM,PLATE_CENTER.clone());
     if(engine._cb)engine._cb(null);document.getElementById('stMode').textContent='装配';},
+  cycleRotor(){const order=['ghost','solid','hidden'];applyRotorMode(order[(order.indexOf(rotorMode)+1)%3]);return rotorMode;},
   toggleCollapse(id){if(collapsed.has(id))collapsed.delete(id);else collapsed.add(id);return collapsed.has(id);},
   toggleRotate(){autoRot=!autoRot;controls.autoRotate=autoRot;return autoRot;},
   toggleRun(){running=!running;return running;},
@@ -597,6 +621,21 @@ document.querySelectorAll('#tabs .tab').forEach(t=>t.addEventListener('click',()
   t.classList.add('on');curFilter=t.dataset.cat;renderList();
 }));
 
+/* 左右面板折叠（localStorage 记忆；窄屏首次默认收起右面板，把画布让给 3D 场景） */
+function bindPanel(tabId,panelSel,key,defaultCollapsed){
+  const tab=document.getElementById(tabId),panel=document.querySelector(panelSel);
+  const saved=localStorage.getItem(key);
+  const collapsed=saved==='1'||(saved===null&&defaultCollapsed);
+  const sync=()=>{const c=panel.classList.contains('is-collapsed');
+    tab.textContent=tabId==='tabLeft'?(c?'›':'‹'):(c?'‹':'›');};
+  if(collapsed)panel.classList.add('is-collapsed');
+  sync();
+  tab.addEventListener('click',()=>{const c=panel.classList.toggle('is-collapsed');
+    localStorage.setItem(key,c?'1':'0');sync();});
+}
+bindPanel('tabLeft','.panel-left','gallery.panelLeft',false);
+bindPanel('tabRight','.panel-right','gallery.panelRight',window.innerWidth<1180);
+
 /* 工具栏 */
 const btnE=document.getElementById('btnExplode');
 btnE.onclick=()=>engine.explodeAll();
@@ -607,6 +646,7 @@ const btnP=document.getElementById('btnPlay');
 btnP.onclick=()=>{const on=engine.toggleRun();btnP.classList.toggle('on',!on);
   btnP.lastChild.textContent=on?' 暂停运转':' 启动运转';};
 document.getElementById('btnView').onclick=()=>engine.cycleView();
+document.getElementById('btnRotor').onclick=()=>engine.cycleRotor();
 document.getElementById('explodeRange').addEventListener('input',e=>{targetExplode=e.target.value/100;});
 setInterval(()=>{const on=targetExplode>.5;btnE.classList.toggle('on',on);
   btnE.lastChild.textContent=on?'  组装复位':' 全部拆解';},200);
@@ -631,7 +671,11 @@ const hint=document.getElementById('dragHint');
 setTimeout(()=>{hint.style.opacity='1';setTimeout(()=>hint.style.opacity='0',3600);},700);
 renderer.domElement.addEventListener('pointerdown',()=>hint.style.opacity='0',{once:true});
 window.__engReady=true;
+window.__engine=engine;   // 暴露调试接口
+window.__controls=controls;
 window.addEventListener('error',e=>{if(window.__firstFrame)return;const s=document.querySelector('#loader .s');
   if(s)s.textContent='引擎加载失败：'+(e.message||'本地 ES 模块被拦截')+' —— 请使用在线部署链接访问';});
 setTimeout(()=>{if(!window.__firstFrame){const s=document.querySelector('#loader .s');
   if(s)s.textContent='本地模块装载耗时较长…若持续如此，请使用在线部署链接访问';}},4000);
+/* 兜底：无论首帧回调是否被后台标签节流，3.5s 后强制隐藏 loader，避免全屏遮罩拦截指针 */
+setTimeout(()=>{const l=document.getElementById('loader');if(l)l.classList.add('off');},3500);

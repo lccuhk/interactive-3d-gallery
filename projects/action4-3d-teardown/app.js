@@ -529,3 +529,5 @@ window.addEventListener('error',e=>{if(window.__firstFrame)return;const s=docume
   if(s)s.textContent='引擎加载失败：'+(e.message||'本地 ES 模块被拦截')+' —— 请使用在线部署链接访问';});
 setTimeout(()=>{if(!window.__firstFrame){const s=document.querySelector('#loader .s');
   if(s)s.textContent='本地模块装载耗时较长…若持续如此，请使用在线部署链接访问';}},4000);
+/* 兜底：无论首帧回调是否被后台标签节流，3.5s 后强制隐藏 loader，避免全屏遮罩拦截指针 */
+setTimeout(()=>{const l=document.getElementById('loader');if(l)l.classList.add('off');},3500);
