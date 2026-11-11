@@ -17,8 +17,9 @@
 | # | 展品 | 技术 | 在线体验 |
 |---|------|------|----------|
 | 01 | **OSMO ACTION 4 · 3D 结构拆解** — 运动相机交互式爆炸图，16 个程序化建模组件、点选聚焦与赛博 HUD 参数面板 | Three.js / WebGL | [进入展厅](https://lccuhk.github.io/interactive-3d-gallery/projects/action4-3d-teardown/) |
+| 02 | **机械手表 · 齿轮系拆解** — 机芯轮系实时啮合运转，13 个组件、四级传动链（921.6:1）、擒纵调速与轴向爆炸拆解 | Three.js / WebGL | [进入展厅](https://lccuhk.github.io/interactive-3d-gallery/projects/watch-gear-train/) |
 
-> 展品源码位于 [`projects/action4-3d-teardown/`](projects/action4-3d-teardown/)，为零外链的自包含静态站点。
+> 展品源码位于 [`projects/`](projects/) 下各子目录，均为零外链的自包含静态站点。
 
 ## ✨ 功能特性（规划中）
 
@@ -47,7 +48,8 @@
 interactive-3d-gallery/
 ├── index.html          # 画廊入口（展品目录大厅）
 ├── projects/           # 各个独立 3D 展品
-│   └── action4-3d-teardown/   # 展品 01：OSMO ACTION 4 结构拆解
+│   ├── action4-3d-teardown/   # 展品 01：OSMO ACTION 4 结构拆解
+│   └── watch-gear-train/      # 展品 02：机械手表齿轮系拆解
 │       ├── index.html
 │       ├── app.js
 │       └── vendor/            # 内置 Three.js，零外链 CDN
@@ -75,6 +77,7 @@ python3 -m http.server 8000
 ### 短期（2026 Q4）
 - [x] 创建项目仓库与基础配置
 - [x] 展品 01：OSMO ACTION 4 · 3D 结构拆解（子页面形式入驻）
+- [x] 展品 02：机械手表 · 齿轮系拆解（程序化齿轮 + 运转轮系）
 - [x] 画廊入口页与展品目录卡片
 - [ ] 搭建 3D 场景基础框架
 - [ ] 实现展厅房间与灯光

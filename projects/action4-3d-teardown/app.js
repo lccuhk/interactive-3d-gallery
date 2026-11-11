@@ -399,7 +399,7 @@ const engine={
   _cb:null,onSelect(cb){this._cb=cb;},
   select(id){selectById(id);},
   setExplode(v){targetExplode=v;document.getElementById('explodeRange').value=Math.round(v*100);},
-  explodeAll(){targetExplode=targetExplode>.5?0:1;},
+  explodeAll(){targetExplode=targetExplode>.5?0:1;document.getElementById('explodeRange').value=Math.round(targetExplode*100);},
   reset(){targetExplode=0;collapsed.clear();document.getElementById('explodeRange').value=0;selectedId=null;hoverId=null;refreshHL();tweenCam(HOME_CAM,new THREE.Vector3(0,0,0));
     if(engine._cb)engine._cb(null);document.getElementById('stMode').textContent='装配';},
   toggleCollapse(id){if(collapsed.has(id))collapsed.delete(id);else collapsed.add(id);return collapsed.has(id);},
