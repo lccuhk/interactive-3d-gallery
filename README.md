@@ -49,7 +49,7 @@ interactive-3d-gallery/
 ├── index.html          # 画廊入口（展品目录大厅）
 ├── projects/           # 各个独立 3D 展品
 │   ├── action4-3d-teardown/   # 展品 01：OSMO ACTION 4 结构拆解
-│   └── watch-gear-train/      # 展品 02：机械手表齿轮系拆解
+│   └── watch-gear-train/      # 展品 02：ETA 2824-2 机芯齿轮系拆解
 │       ├── index.html
 │       ├── app.js
 │       └── vendor/            # 内置 Three.js，零外链 CDN
@@ -77,7 +77,7 @@ python3 -m http.server 8000
 ### 短期（2026 Q4）
 - [x] 创建项目仓库与基础配置
 - [x] 展品 01：OSMO ACTION 4 · 3D 结构拆解（子页面形式入驻）
-- [x] 展品 02：机械手表 · 齿轮系拆解（程序化齿轮 + 运转轮系）
+- [x] 展品 02：ETA 2824-2 机芯齿轮系拆解（真实齿数参数化复刻 + 自动陀）
 - [x] 画廊入口页与展品目录卡片
 - [ ] 搭建 3D 场景基础框架
 - [ ] 实现展厅房间与灯光

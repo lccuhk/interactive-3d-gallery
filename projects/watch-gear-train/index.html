@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>机械手表 · 齿轮系拆解 / GEAR TRAIN EXPLORER</title>
+<title>ETA 2824-2 自动机芯 · 齿轮系拆解 / CALIBER EXPLORER</title>
 <style>
 :root{
   --cy:#3ee6ff; --cy-dim:rgba(62,230,255,.35); --cy-faint:rgba(62,230,255,.12);
@@ -82,6 +82,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .led.c-train{background:var(--green);box-shadow:0 0 7px var(--green)}
 .led.c-escape{background:var(--purple);box-shadow:0 0 7px var(--purple)}
 .led.c-regulation{background:var(--red);box-shadow:0 0 7px var(--red)}
+.led.c-winding{background:#e8d487;box-shadow:0 0 7px #e8d487}
 
 /* right specs */
 .panel-right{right:26px;top:96px;width:318px;max-height:calc(100vh - 192px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--cy-dim) transparent}
@@ -189,23 +190,23 @@ body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple
 
 <div class="topbar">
   <div class="brand">
-    <div class="logo">MW</div>
+    <div class="logo">2824</div>
     <div>
-      <h1>MECHANICAL WATCH</h1>
-      <div class="sub">GEAR TRAIN&nbsp;/&nbsp;MOVEMENT EXPLORER</div>
+      <h1>ETA 2824-2</h1>
+      <div class="sub">AUTOMATIC CALIBER&nbsp;/&nbsp;GEAR TRAIN EXPLORER</div>
     </div>
-    <div class="live"><span class="dot"></span>RUNNING</div>
+    <div class="live"><span class="dot"></span>25 JEWELS · 28800 VPH</div>
   </div>
 </div>
 <div class="stats">
-  <div class="chip"><span class="q">PARTS</span><b id="stParts">13</b></div>
+  <div class="chip"><span class="q">PARTS</span><b id="stParts">15</b></div>
   <div class="chip"><span class="q">EXPLODED</span><b id="stExplode">0%</b></div>
   <div class="chip"><span class="q">FPS</span><b id="stFps">60</b></div>
   <div class="chip"><span class="q">MODE</span><b id="stMode">装配</b></div>
 </div>
 
 <div class="panel panel-left">
-  <div class="phead"><span class="zh">部件清单</span><span class="en">/ PARTS</span><span class="cnt">13 COMPONENTS</span></div>
+  <div class="phead"><span class="zh">部件清单</span><span class="en">/ PARTS</span><span class="cnt">15 COMPONENTS</span></div>
   <div class="tabs" id="tabs">
     <div class="tab on" data-cat="all">全部</div>
     <div class="tab" data-cat="structure">结构</div>
@@ -213,6 +214,7 @@ body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple
     <div class="tab" data-cat="train">传动</div>
     <div class="tab" data-cat="escape">擒纵</div>
     <div class="tab" data-cat="regulation">调速</div>
+    <div class="tab" data-cat="winding">自动</div>
   </div>
   <div id="partsList"></div>
 </div>
@@ -246,7 +248,7 @@ body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple
 
 <div id="guide">
   <div class="gcard">
-    <div class="gstep" id="gStep">STEP 01 / 13</div>
+    <div class="gstep" id="gStep">STEP 01 / 15</div>
     <div class="gtitle" id="gTitle"></div>
     <div class="gdesc" id="gDesc"></div>
     <div class="gprog"><i id="gProg"></i></div>
@@ -258,7 +260,7 @@ body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple
 </div>
 
 <div id="dragHint">拖 拽 旋 转 · 滚 轮 缩 放 · 点 击 部 件</div>
-<div id="loader"><div class="lbox"><div class="spin"></div><div class="t">INITIALIZING MOVEMENT</div><div class="s">正在装载 13 个组件 / GEAR TRAIN ENGINE</div></div></div>
+<div id="loader"><div class="lbox"><div class="spin"></div><div class="t">INITIALIZING ETA 2824-2</div><div class="s">正在装载 15 个组件 / 25 JEWELS · 28800 VPH</div></div></div>
 
 <script type="module" src="./app.js"></script>
 </body>
